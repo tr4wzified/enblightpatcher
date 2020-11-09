@@ -36,49 +36,20 @@ namespace ENBLightPatcher
 
         public static void RunPatch(SynthesisState<ISkyrimMod, ISkyrimModGetter> state)
         {
-
-            // Part 1 - patch every light record in CELL records
-            /*
-            foreach(var cellRecord in state.LoadOrder.PriorityOrder.WinningOverrides<ICellGetter>())
+            // Part 1 - Patch every placed light in worldspaces/cells
+            foreach (var placedObjectGetter in state.LoadOrder.PriorityOrder.PlacedObject().WinningContextOverrides(state.LinkCache))
             {
-            }
-            */
-            // Part 2 - patch every light record in WRLD records
-            foreach (var worldspaceGetter in state.LoadOrder.PriorityOrder.WinningOverrides<IWorldspaceGetter>())
-            {
-                var wCopy = worldspaceGetter.DeepCopy();
-                bool worldspaceUpdated = false;
-                foreach (var blockGetter in worldspaceGetter.SubCells)
+                var placedObject = placedObjectGetter.Record;
+                if (placedObject.LightData == null) continue;
+                placedObject.Base.TryResolve(state.LinkCache, out var placedObjectBase);
+                if (placedObjectBase == null || placedObjectBase.EditorID == null) continue;
+                if (placedObjectBase.EditorID.Contains("Candle") || placedObjectBase.EditorID.Contains("Torch") || placedObjectBase.EditorID.Contains("Camp"))
                 {
-                    Console.WriteLine("Going over Worldspace Subcell");
-                    foreach (var subBlockGetter in blockGetter.Items)
-                    {
-                        Console.WriteLine("Going over Worldspace Subcell Cell");
-                        foreach (var cell in subBlockGetter.Items)
-                        {
-                            Console.WriteLine("Going over Worldspace Subcell Cell Item");
-                            foreach (var refr in cell.Temporary)
-                            {
-                                Console.WriteLine("Going over Worldspace Subcell Cell Item Reference");
-                                Console.WriteLine("Checking: " + refr.EditorID);
-                                if (!(refr is IPlacedObject)) continue;
-                                IPlacedObject placedObject = (IPlacedObject)refr;
-                                if (placedObject.LightData == null) continue;
-                                placedObject.Base.TryResolve(state.LinkCache, out var placedObjectBase);
-                                if (placedObjectBase == null || placedObjectBase.EditorID == null) continue;
-                                if (placedObjectBase.EditorID.Contains("Candle") || placedObjectBase.EditorID.Contains("Torch") || placedObjectBase.EditorID.Contains("Camp"))
-                                {
-                                    placedObject.LightData.FadeOffset /= 2;
-                                    Console.WriteLine("Setting fade offset");
-                                    worldspaceUpdated = true;
-                                }
-                                else continue;
-                            }
-                        }
-                    }
+                    IPlacedObject modifiedObject = placedObjectGetter.GetOrAddAsOverride(state.PatchMod);
+                    if (modifiedObject != null && modifiedObject.LightData != null)
+                        modifiedObject.LightData.FadeOffset /= 2;
                 }
-                Console.WriteLine("World space updated? " + worldspaceUpdated);
-                if (worldspaceUpdated) state.PatchMod.Worldspaces.Set(wCopy);
+                else continue;
             }
             // Part 2 - Patch every LIGH record
             foreach (var light in state.LoadOrder.PriorityOrder.WinningOverrides<ILightGetter>())
