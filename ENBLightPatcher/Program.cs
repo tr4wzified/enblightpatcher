@@ -48,24 +48,37 @@ namespace ENBLightPatcher
             {
                 var wCopy = worldspaceGetter.DeepCopy();
                 bool worldspaceUpdated = false;
-                foreach (var blockGetter in wCopy.SubCells)
+                foreach (var blockGetter in worldspaceGetter.SubCells)
                 {
+                    Console.WriteLine("Going over Worldspace Subcell");
                     foreach (var subBlockGetter in blockGetter.Items)
                     {
+                        Console.WriteLine("Going over Worldspace Subcell Cell");
                         foreach (var cell in subBlockGetter.Items)
                         {
-                            foreach (var refr in cell.Persistent)
+                            Console.WriteLine("Going over Worldspace Subcell Cell Item");
+                            foreach (var refr in cell.Temporary)
                             {
+                                Console.WriteLine("Going over Worldspace Subcell Cell Item Reference");
+                                Console.WriteLine("Checking: " + refr.EditorID);
                                 if (!(refr is IPlacedObject)) continue;
                                 IPlacedObject placedObject = (IPlacedObject)refr;
                                 if (placedObject.LightData == null) continue;
-                                placedObject.LightData.FadeOffset = placedObject.LightData.FadeOffset / 2;
-                                worldspaceUpdated = true;
+                                placedObject.Base.TryResolve(state.LinkCache, out var placedObjectBase);
+                                if (placedObjectBase == null || placedObjectBase.EditorID == null) continue;
+                                if (placedObjectBase.EditorID.Contains("Candle") || placedObjectBase.EditorID.Contains("Torch") || placedObjectBase.EditorID.Contains("Camp"))
+                                {
+                                    placedObject.LightData.FadeOffset /= 2;
+                                    Console.WriteLine("Setting fade offset");
+                                    worldspaceUpdated = true;
+                                }
+                                else continue;
                             }
                         }
                     }
                 }
-                if (worldspaceUpdated) state.PatchMod.Worldspaces.GetOrAddAsOverride(wCopy);
+                Console.WriteLine("World space updated? " + worldspaceUpdated);
+                if (worldspaceUpdated) state.PatchMod.Worldspaces.Set(wCopy);
             }
             // Part 2 - Patch every LIGH record
             foreach (var light in state.LoadOrder.PriorityOrder.WinningOverrides<ILightGetter>())
