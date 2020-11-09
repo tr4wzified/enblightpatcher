@@ -40,8 +40,11 @@ namespace ENBLightPatcher
             foreach (var placedObjectGetter in state.LoadOrder.PriorityOrder.PlacedObject().WinningContextOverrides(state.LinkCache))
             {
                 var placedObject = placedObjectGetter.Record;
+                if (placedObject.EditorID != null)
+                    Console.WriteLine(placedObject.EditorID + placedObject.FormKey);
+
                 if (placedObject.LightData == null) continue;
-                placedObject.Base.TryResolve(state.LinkCache, out var placedObjectBase);
+                state.LinkCache.TryLookup<ILightGetter>(placedObject.Base.FormKey ?? FormKey.Null, out var placedObjectBase);
                 if (placedObjectBase == null || placedObjectBase.EditorID == null) continue;
                 if (placedObjectBase.EditorID.Contains("Candle") || placedObjectBase.EditorID.Contains("Torch") || placedObjectBase.EditorID.Contains("Camp"))
                 {
