@@ -41,16 +41,18 @@ namespace ENBLightPatcher
             {
                 var placedObject = placedObjectGetter.Record;
                 if (placedObject.EditorID != null)
-                    Console.WriteLine(placedObject.EditorID + placedObject.FormKey);
 
                 if (placedObject.LightData == null) continue;
                 state.LinkCache.TryLookup<ILightGetter>(placedObject.Base.FormKey ?? FormKey.Null, out var placedObjectBase);
                 if (placedObjectBase == null || placedObjectBase.EditorID == null) continue;
                 if (placedObjectBase.EditorID.Contains("Candle") || placedObjectBase.EditorID.Contains("Torch") || placedObjectBase.EditorID.Contains("Camp"))
                 {
-                    IPlacedObject modifiedObject = placedObjectGetter.GetOrAddAsOverride(state.PatchMod);
-                    if (modifiedObject != null && modifiedObject.LightData != null)
-                        modifiedObject.LightData.FadeOffset /= 2;
+                    if (placedObject != null && placedObject.LightData != null)
+                    {
+                        Console.WriteLine("Patching " + placedObject.EditorID + " " + placedObject.FormKey);
+                        IPlacedObject modifiedObject = placedObjectGetter.GetOrAddAsOverride(state.PatchMod);
+                        modifiedObject.LightData!.FadeOffset /= 2;
+                    }
                 }
                 else continue;
             }
