@@ -45,9 +45,9 @@ namespace ENBLightPatcher
                 if (placedObject.LightData == null) continue;
                 state.LinkCache.TryLookup<ILightGetter>(placedObject.Base.FormKey ?? FormKey.Null, out var placedObjectBase);
                 if (placedObjectBase == null || placedObjectBase.EditorID == null) continue;
-                if (placedObjectBase.EditorID.Contains("Candle") || placedObjectBase.EditorID.Contains("Torch") || placedObjectBase.EditorID.Contains("Camp"))
+                if (placedObjectBase.EditorID.ContainsInsensitive("Candle") || placedObjectBase.EditorID.ContainsInsensitive("Torch") || placedObjectBase.EditorID.ContainsInsensitive("Camp"))
                 {
-                    if (placedObject != null && placedObject.LightData != null)
+                    if (placedObject != null && placedObject.LightData != null && placedObject.LightData.FadeOffset > 0)
                     {
                         Console.WriteLine("Patching " + placedObject.EditorID + " " + placedObject.FormKey);
                         IPlacedObject modifiedObject = placedObjectGetter.GetOrAddAsOverride(state.PatchMod);
@@ -60,10 +60,11 @@ namespace ENBLightPatcher
             foreach (var light in state.LoadOrder.PriorityOrder.WinningOverrides<ILightGetter>())
             {
                 if (light.EditorID == null) continue;
-                if (!light.EditorID.ContainsInsensitive("Torch") && !light.EditorID.ContainsInsensitive("Camp") && !light.EditorID.ContainsInsensitive("Candle")) continue;
-
-                var modifiedLight = state.PatchMod.Lights.GetOrAddAsOverride(light);
-                modifiedLight.FadeValue = modifiedLight.FadeValue / 2;
+                if (light.EditorID.ContainsInsensitive("Torch") || light.EditorID.ContainsInsensitive("Camp") || light.EditorID.ContainsInsensitive("Candle"))
+                {
+                    var modifiedLight = state.PatchMod.Lights.GetOrAddAsOverride(light);
+                    modifiedLight.FadeValue /= 2;
+                }
             }
         }
     }
