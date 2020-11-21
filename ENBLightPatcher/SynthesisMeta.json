@@ -1,0 +1,7 @@
+{
+  "Nickname": "ENB Light Patcher",
+  "Visibility": "Visible",
+  "OneLineDescription": "Reduces the light intensity of your other mods so ENB Light doesn't make it too bright.",
+  "LongDescription": "",
+  "PreferredAutoVersioning": "Default"
+}
