@@ -43,7 +43,7 @@ namespace ENBLightPatcher
                 if (placedObject.EditorID != null)
 
                 if (placedObject.LightData == null) continue;
-                state.LinkCache.TryLookup<ILightGetter>(placedObject.Base.FormKey ?? FormKey.Null, out var placedObjectBase);
+                placedObject.Base.TryResolve<ILightGetter>(state.LinkCache, out var placedObjectBase);
                 if (placedObjectBase == null || placedObjectBase.EditorID == null) continue;
                 if (placedObjectBase.EditorID.ContainsInsensitive("Candle") || placedObjectBase.EditorID.ContainsInsensitive("Torch") || placedObjectBase.EditorID.ContainsInsensitive("Camp"))
                 {
