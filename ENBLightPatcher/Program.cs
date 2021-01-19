@@ -40,16 +40,14 @@ namespace ENBLightPatcher
             foreach (var placedObjectGetter in state.LoadOrder.PriorityOrder.PlacedObject().WinningContextOverrides(state.LinkCache))
             {
                 var placedObject = placedObjectGetter.Record;
-                if (placedObject.EditorID != null)
 
                 if (placedObject.LightData == null) continue;
                 placedObject.Base.TryResolve<ILightGetter>(state.LinkCache, out var placedObjectBase);
                 if (placedObjectBase == null || placedObjectBase.EditorID == null) continue;
                 if (placedObjectBase.EditorID.ContainsInsensitive("Candle") || placedObjectBase.EditorID.ContainsInsensitive("Torch") || placedObjectBase.EditorID.ContainsInsensitive("Camp"))
                 {
-                    if (placedObject != null && placedObject.LightData != null && placedObject.LightData.FadeOffset > 0)
+                    if (placedObject != null && placedObject.LightData != null && placedObject.LightData.FadeOffset > 0 && placedObjectGetter.ModKey != "ENB Light.esp")
                     {
-                        Console.WriteLine("Patching " + placedObject.EditorID + " " + placedObject.FormKey);
                         IPlacedObject modifiedObject = placedObjectGetter.GetOrAddAsOverride(state.PatchMod);
                         modifiedObject.LightData!.FadeOffset /= 2;
                     }
