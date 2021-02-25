@@ -6,6 +6,7 @@ using Mutagen.Bethesda.Synthesis;
 using Mutagen.Bethesda.Skyrim;
 using Wabbajack.Common;
 using Noggog;
+using System.Threading.Tasks;
 
 namespace ENBLightPatcher
 {
@@ -19,12 +20,11 @@ namespace ENBLightPatcher
 
     public class Program
     {
-        public static int Main(string[] args)
+        public static Task<int> Main(string[] args)
         {
-            return SynthesisPipeline.Instance.Patch<ISkyrimMod, ISkyrimModGetter>(
-                args: args,
-                patcher: RunPatch,
-                new UserPreferences
+            return SynthesisPipeline.Instance
+                .AddPatch<ISkyrimMod, ISkyrimModGetter>(RunPatch)
+                .Run(args, new RunPreferences()
                 {
                     ActionsForEmptyArgs = new RunDefaultPatcher
                     {
@@ -34,7 +34,7 @@ namespace ENBLightPatcher
                 });
         }
 
-        public static void RunPatch(SynthesisState<ISkyrimMod, ISkyrimModGetter> state)
+        public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             // Part 1 - Patch every placed light in worldspaces/cells
             foreach (var placedObjectGetter in state.LoadOrder.PriorityOrder.PlacedObject().WinningContextOverrides(state.LinkCache))
@@ -55,7 +55,7 @@ namespace ENBLightPatcher
                 else continue;
             }
             // Part 2 - Patch every LIGH record
-            foreach (var light in state.LoadOrder.PriorityOrder.WinningOverrides<ILightGetter>())
+            foreach (var light in state.LoadOrder.PriorityOrder.Light().WinningOverrides())
             {
                 if (light.EditorID == null) continue;
                 if (light.EditorID.ContainsInsensitive("Torch") || light.EditorID.ContainsInsensitive("Camp") || light.EditorID.ContainsInsensitive("Candle"))
