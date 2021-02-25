@@ -4,7 +4,6 @@ using System.Linq;
 using Mutagen.Bethesda;
 using Mutagen.Bethesda.Synthesis;
 using Mutagen.Bethesda.Skyrim;
-using Wabbajack.Common;
 using Noggog;
 using System.Threading.Tasks;
 
