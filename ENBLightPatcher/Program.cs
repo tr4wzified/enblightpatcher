@@ -23,14 +23,8 @@ namespace ENBLightPatcher
         {
             return SynthesisPipeline.Instance
                 .AddPatch<ISkyrimMod, ISkyrimModGetter>(RunPatch)
-                .Run(args, new RunPreferences()
-                {
-                    ActionsForEmptyArgs = new RunDefaultPatcher
-                    {
-                        IdentifyingModKey = "ENBLightPatcher.esp",
-                        TargetRelease = GameRelease.SkyrimSE
-                    }
-                });
+                .SetTypicalOpen(GameRelease.SkyrimSE, "ENBLightPatcher.esp")
+                .Run(args);
         }
 
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
