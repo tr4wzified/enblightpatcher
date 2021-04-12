@@ -27,34 +27,43 @@ namespace ENBLightPatcher
                 .Run(args);
         }
 
+        private static readonly string enbLightPluginNameWithExtension = "ENB Light.esp";
+
+        private static readonly string[] lightNamesToAdjust = { "Candle", "Torch", "Camp" };
+
+        private static readonly float fadeMultiplier = 0.5f;
+
         public static void RunPatch(IPatcherState<ISkyrimMod, ISkyrimModGetter> state)
         {
             // Part 1 - Patch every placed light in worldspaces/cells
             foreach (var placedObjectGetter in state.LoadOrder.PriorityOrder.PlacedObject().WinningContextOverrides(state.LinkCache))
             {
+                if (placedObjectGetter.ModKey == enbLightPluginNameWithExtension) continue;
                 var placedObject = placedObjectGetter.Record;
-
                 if (placedObject.LightData == null) continue;
                 placedObject.Base.TryResolve<ILightGetter>(state.LinkCache, out var placedObjectBase);
                 if (placedObjectBase == null || placedObjectBase.EditorID == null) continue;
-                if (placedObjectBase.EditorID.ContainsInsensitive("Candle") || placedObjectBase.EditorID.ContainsInsensitive("Torch") || placedObjectBase.EditorID.ContainsInsensitive("Camp"))
+                if (lightNamesToAdjust.Any(placedObjectBase.EditorID.ContainsInsensitive))
                 {
-                    if (placedObject != null && placedObject.LightData != null && placedObject.LightData.FadeOffset > 0 && placedObjectGetter.ModKey != "ENB Light.esp")
+                    if (placedObject != null && placedObject.LightData != null && placedObject.LightData.FadeOffset > 0)
                     {
                         IPlacedObject modifiedObject = placedObjectGetter.GetOrAddAsOverride(state.PatchMod);
-                        modifiedObject.LightData!.FadeOffset /= 2;
+                        modifiedObject.LightData!.FadeOffset *= fadeMultiplier;
                     }
                 }
                 else continue;
             }
+
             // Part 2 - Patch every LIGH record
-            foreach (var light in state.LoadOrder.PriorityOrder.Light().WinningOverrides())
+            foreach (var lightGetter in state.LoadOrder.PriorityOrder.Light().WinningContextOverrides())
             {
+                if (lightGetter.ModKey == enbLightPluginNameWithExtension) continue;
+                var light = lightGetter.Record;
                 if (light.EditorID == null) continue;
-                if (light.EditorID.ContainsInsensitive("Torch") || light.EditorID.ContainsInsensitive("Camp") || light.EditorID.ContainsInsensitive("Candle"))
+                if (lightNamesToAdjust.Any(light.EditorID.ContainsInsensitive))
                 {
-                    var modifiedLight = state.PatchMod.Lights.GetOrAddAsOverride(light);
-                    modifiedLight.FadeValue /= 2;
+                    Light modifiedLight = state.PatchMod.Lights.GetOrAddAsOverride(light);
+                    modifiedLight.FadeValue *= fadeMultiplier;
                 }
             }
         }
